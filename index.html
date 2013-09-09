@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+
+        <title>Integrating JavaScript with Python Web Frameworks</title>
+
+        <meta name="description" content="For today's modern web applications it's inevitable that you're going to need some client side magic to give your application the responsiveness it needs. This talk covers some of the do's and don'ts of integrating JavaScript with various Python web frameworks like Django.">
+        <meta name="author" content="Jen Zajac">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <link rel="stylesheet" href="css/reveal.min.css">
+        <link rel="stylesheet" href="custom/theme.css">
+
+        <!-- For syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+        <!--<script>
+            document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+        </script>-->
+        <link media="print" type="text/css" href="css/print/paper.css" rel="stylesheet">
+        <link media="print" type="text/css" href="custom/print.css" rel="stylesheet">
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+
+        <div class="reveal">
+
+            <div class="slides">
+                <section>
+                    <h1 class="title">Integrating JavaScript with Python Web Frameworks</h1>
+                    <h3><a href="http://www.littlegreenpixel.com">Jen Zajac</a>, @jenofdoom</h3>
+
+                    <aside class="notes">
+                        <ul>
+                            <li>who am I?</li>
+                            <li>frontend dev with some pretty rusty backend dev knowledge</li>
+                            <li>have been building a giant django/angularjs web app for a gov ministry for the last year</li>
+                            <li>so that's my particular area of expertise, am trying to keep this talk a bit more general though</li>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Why do we want to use JS?</h3>
+                    <ul>
+                        <li class="fragment">To offload some work to the client?</li>
+                        <li class="fragment">To make the app or site more responsive to the user?</li>
+                    </ul>
+                    <aside class="notes">
+                        <ul>
+                            <li>making your site or app more responsive is the killer feature</li>
+                            <li>ability to update smaller parts of the page</li>
+                            <li>no need for a reload for e.g. sorting a list of serach results</li>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>How can we use JS to augment our Python app or site?</h3>
+                    <ul>
+                        <li class="fragment">Light interactivity</li>
+                        <ul class="fragment">
+                            <li>e.g. as you type form validation on one page</li>
+                            <li>just use jQuery</li>
+                        </ul>
+                        <li class="fragment">App-like behaviour</li>
+                        <ul class="fragment">
+                            <li>e.g. client side routes (HTML5 push state)</li>
+                            <li>at this point we want a JS framework</li>
+                        </ul>
+                    </ul>
+                    <aside class="notes">
+                        <p>
+                            JS frameworks are a good idea because they provide structure for your code and templating so you don't end up with lots of content strings and markup in your code.
+                        </p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Okay, so I want to use a JS framework with a Python framework, what things do I need to think about?</h2>
+                </section>
+
+                <section>
+                    <h3>Many JS libraries use the {{&nbsp;somevar&nbsp;}} pattern in their templating</h3>
+                </section>
+
+                <section>
+                    <h3>Many Python libraries <em>also</em> use the {{&nbsp;somevar&nbsp;}} pattern in their templating</h3>
+                </section>
+
+                <section>
+                    <h3>Some Python templating engines should be fine:</h3>
+                    <ul>
+                        <li>templetor (web.py)</li>
+                        <li>mako (pyramid, bottle)</li>
+                        <li>chameleon (pyramid)</li>
+                        <li>cheetah (bottle)</li>
+                        <li>genshi (cherrypy)</li>
+                    </ul>
+                    <aside class="notes">
+                        <p>On the JS side, backbone should work fine with anything as its template delimiters are configurable and in fact don't use curly braces as default</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Some, not so fine:</h3>
+                    <ul>
+                        <li>jinja2 (bottle, flask, many others)</li>
+                        <li>SimpleTemplate Engine (bottle)</li>
+                        <li>Django's templating (django)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Fortunately, there are some workarounds</h3>
+                    <aside class="notes">
+                        <p>Not for bottle's simpletemplate engine though - you'll have to use an alternative templating engine</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>jinja2</h3>
+                    <p>Use <a href="http://jinja.pocoo.org/docs/templates/#escaping">{% raw %}</a> blocks</p>
+                    <pre>
+                        <code data-trim contenteditable>
+{% raw %}
+    <p>{{ myVar }} is lovely.</p>
+{% endraw %}
+                        </code>
+                    </pre>
+                </section>
+
+                <section>
+                    <h3>Django 1.5+</h3>
+                    <p>Use <a href="https://docs.djangoproject.com/en/dev/ref/templates/builtins/#std:templatetag-verbatim">{% verbatim %}</a> blocks</p>
+                    <pre>
+                        <code data-trim contenteditable>
+{% verbatim %}
+    <p>{{ myVar }} is lovely.</p>
+{% endverbatim %}
+                        </code>
+                    </pre>
+                </section>
+
+                <section>
+                    <h3>Django 1.4 and below</h3>
+                    <p>Not as straightforwards... use a custom template tag?</p>
+                    <pre>
+                        <code data-trim contenteditable>
+@register.filter
+def curly(value):
+    """Wraps string in {{ }}"""
+    return '{{ ' + value + ' }}'
+                        </code>
+                    </pre>
+                    <pre>
+                        <code data-trim contenteditable>
+{{ 'myVar'|curly }}
+                        </code>
+                    </pre>
+                    <aside class="notes">
+                        <p>This is pretty nasty...</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Alternatively, sidestep the problem altogether:</h3>
+                    <ul>
+                        <li>Use partial templates that get included by the JS framework</li>
+                        <li>Your Python code never sees them</li>
+                        <li>Or, even more drastic: no Python templates at all</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Partial JS templates</h3>
+                    <ul>
+                        <li>Keep them with your other static files (like CSS and JS files)</li>
+                        <li>Most JS frameworks let you nest templates in quite a sophisticated manner</li>
+                        <li>Watch out for CORS issues on older flavours of IE - you may need to ensure you serve static from same domain as your site</li>
+                    </ul>
+                    <aside class="notes">
+                        <p>CORS = cross origin resource sharing. See http://caniuse.com/cors</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Django + Angular partial template example</h3>
+                    <pre>
+                        <code data-trim class="smaller">
+&lt;form method=&quot;POST&quot; action=&quot;{% url my_view %}&quot;&gt;
+    {% csrf_token %}
+    &lt;div
+        ng-include
+        src=&quot;staticURL + &#39;partials/partial.html&#39;&quot;
+        ng-init=&quot;initData={state: &#39;{% myVar %}&#39;}&quot;
+    &gt;&lt;/div&gt;
+&lt;/form&gt;
+                        </code>
+                    </pre>
+                </section>
+
+                <section>
+                    <h3>Okay, so I'm now either serving Python templates that do very little, or I'm not serving them at all... what's supplying data to the JS framework?</h3>
+                </section>
+
+                <section>
+                    <h2>RESTful API</h2>
+                    <aside class="notes">
+                        <ul>
+                            <li>seperation of concerns</li>
+                            <li>easy to cache aggressively</li>
+                            <li>standardised pattern for third parties to interact with</li>
+                            <li>many js frameworks have built in ability to talk to REST services</li>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Popular API libraries</h3>
+                    <ul>
+                        <li><a href="http://tastypieapi.org/">Tastypie</a> (Django)</li>
+                        <li><a href="http://django-rest-framework.org/">Django REST framework</a> (Django...)</li>
+                        <li><a href="https://bitbucket.org/jespern/django-piston/wiki/Home">Django-piston</a> (Django...)</li>
+                        <li><a href="http://flask-restful.readthedocs.org/en/latest/">Flask-RESTful</a> (Flask)</li>
+                        <li><a href="https://github.com/martinblech/mimerender">mimerender</a> (webapp2, web.py, Flask, Bottle)</li>
+                        <li><a href="http://python-eve.org/">Eve</a> (Flask + MongoDB only)</li>
+                    </ul>
+                    <aside class="notes">
+                        <p>Of the Django options, Django REST framework is possibly the sleekest. Tastypie can be a little curmudegonly but is quite powerful</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Roll your own</h3>
+                    <p>Some frameworks offer some api functionality out of the box:</p>
+                    <ul>
+                        <li><a href="http://web2py.com/books/default/chapter/29/10#HTML,-XML,-and-JSON">web2py</a></li>
+                        <li><a href="http://docs.cherrypy.org/dev/progguide/REST.html">cherrypy</a></li>
+                    </ul>
+                    <p>Or write your own:</p>
+                    <ul>
+                        <li>build on top of light framework e.g. flash, bottle</li>
+                        <li>or use Django's <a href="http://ccbv.co.uk/">class-based views</a></li>
+                    </ul>
+                    <aside class="notes">
+                        <p>Of the Django options, Django REST framework is possibly the sleekest. Tastypie can be a little curmudegonly but is quite powerful</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h2>Some other things to consider</h2>
+                </section>
+
+                <section>
+                    <h3>Watch out for &#8220;features&#8221; of API frameworks burning you</h3>
+                    <aside class="notes">
+                        <p>Check everything is off by default &amp; turn on the things you need (XML and YAML are kinda insecure by default).</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>You need to make sure you are sending <a href="https://docs.djangoproject.com/en/1.5/ref/contrib/csrf/#ajax">CSRF protection tokens</a> along with any POSTs you are doing</h3>
+                    <aside class="notes">
+                        <p>Need to check that the POST originated from the right place.Django allows you to set a X-CSRFToken header. make sure you clean incoming data propely - if using django can use django forms for this, still.</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Some JS frameworks have opinions about trailing slashes on URLs</h3>
+                    <aside class="notes">
+                        <p>Django has trailing slashes on by default, Angular always strips them. Have to config Django (and Tasyie) to not require them for Angular's RESTful service interation to work.</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>If you know have a bunch of application logic in your JS, that JS <strong>needs</strong> to be unit tested.</h3>
+                    <aside class="notes">
+                        <p>Look at <a href="http://pivotal.github.io/jasmine/">Jasmine</a> as a unit testing framework. This has an HTML based test runner which you can set up to be scraped by e.g. Selenium to integrate with the rest of your tests.</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>Keep your coding conventions nicely segregated - this will help you mentally flip between languages</h3>
+                    <aside class="notes">
+                        <p>E.g. use camelCase for js and underscores for Python. Use hinters and linters to maintain good code quality.</p>
+                    </aside>
+                </section>
+
+                <section>
+                    <h3>If you have small bits of data you want to expose to your JS code without necessitating an API call, use the data attribute on the HTML or body element.</h3>
+                    <aside class="notes">
+                        <p>E.g. use camelCase for js and underscores for Python. Use hinters and linters to maintain good code quality.</p>
+                    </aside>
+                </section>
+
+                <section class="classes-example">
+                    <h3>Using data attributes, example with Django template</h3>
+                    <pre>
+                        <code data-trim contenteditable class="smaller">
+&lt;html data-static=&quot;{% get_static_prefix %}&quot;&gt;
+                        </code>
+                    </pre>
+                    <p>Scrape this with some JS:</p>
+                    <pre>
+                        <code data-trim class="smaller">
+var staticURL = document.documentElement.getAttribute('data-static');
+                        </code>
+                    </pre>
+                </section>
+
+                <section data-transition="linear" data-background="#6EA4AF" data-background-transition="slide">
+                    <h2>Thanks for listening</h2>
+                </section>
+
+            </div>
+
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.min.js"></script>
+
+        <script>
+
+            // Full list of configuration options available here:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+                transition: 'linear',
+                rollingLinks: false,
+                controls: false,
+
+                //theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                //transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+                // Optional libraries used to extend on reveal.js
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    //{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    //{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    //{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+                    // { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+                    // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
